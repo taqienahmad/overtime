@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (contains credentials - DO NOT commit)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Uploaded files
+overtime-backend-nest/uploads/*
+!overtime-backend-nest/uploads/.gitkeep
+
+# Temp directories
+tmp_pw/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
