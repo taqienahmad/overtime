@@ -47,28 +47,33 @@ export class OvertimeService {
         `
         INSERT INTO overtime.overtime_records
         (
-          employee_name,
-          employee_email,
-          project_name,
-          overtime_hours,
-          upload_id,
-          billable_hours,
-          non_billable_hours,
-          overtime_period,
-          nip
+          employee_name, employee_email, project_name, overtime_hours,
+          upload_id, billable_hours, non_billable_hours, overtime_period, nip,
+          job_position, schedule, shift,
+          duty_on_before, duty_off_before, duration_before,
+          break_after, ot_after, duration_after,
+          spl_total_break, spl_total_ot,
+          actual_duty_on, actual_duty_off, attendance_code,
+          ot_calc_1_5, ot_calc_2, ot_calc_3, ot_calc_4,
+          spl_indeks_total, overtime_paid, note
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        VALUES (
+          $1,$2,$3,$4,$5,$6,$7,$8,$9,
+          $10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+          $21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+        )
         `,
         [
-          row['Nama'],
-          employeeEmail,
-          row['Project'],
-          row['Total Overtime (Hours)'],
-          uploadId,
-          0,
-          0,
-          row['Periode Overtime'] || null,
-          nip,
+          row['Nama'], employeeEmail, row['Project'],
+          row['Total Overtime (Hours)'], uploadId, 0, 0,
+          row['Periode Overtime'] || null, nip,
+          row['job_position'] || null, row['schedule'] || null, row['shift'] || null,
+          row['duty_on_before'] || null, row['duty_off_before'] || null, row['duration_before'] ?? null,
+          row['break_after'] ?? null, row['ot_after'] ?? null, row['duration_after'] ?? null,
+          row['spl_total_break'] ?? null, row['spl_total_ot'] ?? null,
+          row['actual_duty_on'] || null, row['actual_duty_off'] || null, row['attendance_code'] || null,
+          row['ot_calc_1_5'] ?? null, row['ot_calc_2'] ?? null, row['ot_calc_3'] ?? null, row['ot_calc_4'] ?? null,
+          row['spl_indeks_total'] ?? null, row['overtime_paid'] ?? null, row['note'] || null,
         ],
       );
 
@@ -142,21 +147,18 @@ export class OvertimeService {
     const result = await this.pool.query(
       `
       SELECT
-        r.id,
-        r.nip,
-        r.employee_name,
-        r.employee_email,
-        r.project_name,
-        r.overtime_hours,
-        r.overtime_period,
-        r.billable_hours,
-        r.non_billable_hours,
-        r.status,
-        r.validation_type,
-        r.validation_remark,
-        r.validated_by,
-        r.validated_device,
-        r.validated_at,
+        r.id, r.nip, r.employee_name, r.employee_email, r.project_name,
+        r.overtime_hours, r.overtime_period,
+        r.billable_hours, r.non_billable_hours,
+        r.status, r.validation_type, r.validation_remark,
+        r.validated_by, r.validated_device, r.validated_at,
+        r.job_position, r.schedule, r.shift,
+        r.duty_on_before, r.duty_off_before, r.duration_before,
+        r.break_after, r.ot_after, r.duration_after,
+        r.spl_total_break, r.spl_total_ot,
+        r.actual_duty_on, r.actual_duty_off, r.attendance_code,
+        r.ot_calc_1_5, r.ot_calc_2, r.ot_calc_3, r.ot_calc_4,
+        r.spl_indeks_total, r.overtime_paid, r.note,
         session.validation_method,
         session.total_billable_hours AS session_total_billable_hours,
         session.total_non_billable_hours AS session_total_non_billable_hours
@@ -263,8 +265,29 @@ export class OvertimeService {
             'overtime_hours', r.overtime_hours,
             'overtime_period', r.overtime_period,
             'status', r.status,
-            'validation_type', r.validation_type
-          )
+            'validation_type', r.validation_type,
+            'job_position', r.job_position,
+            'schedule', r.schedule,
+            'shift', r.shift,
+            'duty_on_before', r.duty_on_before,
+            'duty_off_before', r.duty_off_before,
+            'duration_before', r.duration_before,
+            'break_after', r.break_after,
+            'ot_after', r.ot_after,
+            'duration_after', r.duration_after,
+            'spl_total_break', r.spl_total_break,
+            'spl_total_ot', r.spl_total_ot,
+            'actual_duty_on', r.actual_duty_on,
+            'actual_duty_off', r.actual_duty_off,
+            'attendance_code', r.attendance_code,
+            'ot_calc_1_5', r.ot_calc_1_5,
+            'ot_calc_2', r.ot_calc_2,
+            'ot_calc_3', r.ot_calc_3,
+            'ot_calc_4', r.ot_calc_4,
+            'spl_indeks_total', r.spl_indeks_total,
+            'overtime_paid', r.overtime_paid,
+            'note', r.note
+          ) ORDER BY r.nip
         ) AS members,
         latest_session.status AS last_email_status,
         latest_session.created_at AS last_email_sent_at,
@@ -304,16 +327,25 @@ export class OvertimeService {
         TO_CHAR(d.day, 'YYYY-MM-DD') AS date,
         COALESCE(SUM(r.overtime_hours), 0) AS total_hours
       FROM generate_series(
-        CURRENT_DATE - ($1::int - 1),
-        CURRENT_DATE,
+        (
+          SELECT MIN(TO_DATE(overtime_period, 'DD Mon YYYY'))
+          FROM overtime.overtime_records
+          WHERE overtime_period IS NOT NULL AND overtime_period != ''
+        ),
+        (
+          SELECT MAX(TO_DATE(overtime_period, 'DD Mon YYYY'))
+          FROM overtime.overtime_records
+          WHERE overtime_period IS NOT NULL AND overtime_period != ''
+        ),
         '1 day'
       ) AS d(day)
       LEFT JOIN overtime.overtime_records r
-        ON r.created_at::date = d.day
+        ON TO_DATE(r.overtime_period, 'DD Mon YYYY') = d.day
+        AND r.overtime_period IS NOT NULL
+        AND r.overtime_period != ''
       GROUP BY d.day
       ORDER BY d.day
       `,
-      [days],
     );
 
     return result.rows.map((row) => ({
@@ -371,17 +403,16 @@ export class OvertimeService {
     const records = await this.pool.query(
       `
       SELECT
-        id,
-        nip,
-        employee_name,
-        overtime_hours,
-        overtime_period,
-        billable_hours,
-        non_billable_hours,
-        status,
-        validation_type,
-        validation_remark,
-        validated_by
+        id, nip, employee_name, overtime_hours, overtime_period,
+        billable_hours, non_billable_hours, status, validation_type,
+        validation_remark, validated_by,
+        job_position, schedule, shift,
+        duty_on_before, duty_off_before, duration_before,
+        break_after, ot_after, duration_after,
+        spl_total_break, spl_total_ot,
+        actual_duty_on, actual_duty_off, attendance_code,
+        ot_calc_1_5, ot_calc_2, ot_calc_3, ot_calc_4,
+        spl_indeks_total, note
       FROM overtime.overtime_records
       WHERE employee_email = $1
       AND project_name = $2

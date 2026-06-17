@@ -333,60 +333,119 @@ export default function ApprovalPage() {
             </label>
           </div>
 
-          <Table>
-            <thead>
-              <tr>
-                <th className={thClass}>NIP</th>
-                <th className={thClass}>Name</th>
-                <th className={thClass}>Periode</th>
-                <th className={thClass}>OT Total</th>
-                <th className={thClass}>Billable</th>
-                <th className={thClass}>Non Billable</th>
-                <th className={thClass}>Remark</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member) => (
-                <tr key={member.id}>
-                  <td className={tdClass}>{member.nip || "-"}</td>
-                  <td className={tdClass}>{member.employee_name}</td>
-                  <td className={tdClass}>{member.overtime_period || "-"}</td>
-                  <td className={tdClass}>{member.overtime_hours}</td>
-                  <td className={tdClass}>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={member.billable_hours}
-                      onChange={(e) => updateHours(member.id, "billable_hours", e.target.value)}
-                      className="w-24"
-                      disabled={validationMethod === "TOTAL"}
-                    />
-                  </td>
-                  <td className={tdClass}>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={member.non_billable_hours}
-                      onChange={(e) =>
-                        updateHours(member.id, "non_billable_hours", e.target.value)
-                      }
-                      className="w-24"
-                      disabled={validationMethod === "TOTAL"}
-                    />
-                  </td>
-                  <td className={tdClass}>
-                    <Textarea
-                      rows={1}
-                      placeholder="Penjelasan (opsional)"
-                      value={member.remark}
-                      onChange={(e) => updateRemark(member.id, e.target.value)}
-                      className="min-w-[180px] font-sans"
-                    />
-                  </td>
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50">
+                {/* Row 1 — section headers */}
+                <tr>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>No.</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>Date</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>NIP</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>Full Name</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>Branch</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>Job Position</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>Schedule</th>
+                  <th colSpan={4} className={thClass + " text-center bg-blue-50"}>SPL Before Duty On</th>
+                  <th colSpan={3} className={thClass + " text-center bg-green-50"}>SPL After Duty Off</th>
+                  <th colSpan={2} className={thClass + " text-center bg-yellow-50"}>SPL Total</th>
+                  <th colSpan={3} className={thClass + " text-center bg-purple-50"}>Actual Attendance</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>SPL Payment Total</th>
+                  <th colSpan={4} className={thClass + " text-center bg-orange-50"}>Overtime Calculate</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>SPL Indeks Total</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap"}>Note</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap bg-red-50"}>Billable</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap bg-red-50"}>Non Billable</th>
+                  <th rowSpan={2} className={thClass + " whitespace-nowrap bg-red-50"}>Remark</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+                {/* Row 2 — sub-headers */}
+                <tr>
+                  <th className={thClass + " bg-blue-50"}>Shift</th>
+                  <th className={thClass + " bg-blue-50"}>Duty On</th>
+                  <th className={thClass + " bg-blue-50"}>Duty Off</th>
+                  <th className={thClass + " bg-blue-50"}>Duration</th>
+                  <th className={thClass + " bg-green-50"}>Break</th>
+                  <th className={thClass + " bg-green-50"}>OT</th>
+                  <th className={thClass + " bg-green-50"}>Duration</th>
+                  <th className={thClass + " bg-yellow-50"}>Break</th>
+                  <th className={thClass + " bg-yellow-50"}>OT</th>
+                  <th className={thClass + " bg-purple-50"}>Duty On</th>
+                  <th className={thClass + " bg-purple-50"}>Duty Off</th>
+                  <th className={thClass + " bg-purple-50"}>Code</th>
+                  <th className={thClass + " bg-orange-50"}>1.5</th>
+                  <th className={thClass + " bg-orange-50"}>2</th>
+                  <th className={thClass + " bg-orange-50"}>3</th>
+                  <th className={thClass + " bg-orange-50"}>4</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((member, idx) => (
+                  <tr key={member.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                    <td className={tdClass}>{idx + 1}</td>
+                    <td className={tdClass + " whitespace-nowrap"}>{member.overtime_period || "-"}</td>
+                    <td className={tdClass}>{member.nip || "-"}</td>
+                    <td className={tdClass + " whitespace-nowrap"}>{member.employee_name}</td>
+                    <td className={tdClass}>{member.project_name || "-"}</td>
+                    <td className={tdClass + " whitespace-nowrap"}>{member.job_position || "-"}</td>
+                    <td className={tdClass}>{member.schedule || "-"}</td>
+                    {/* SPL Before */}
+                    <td className={tdClass}>{member.shift || "-"}</td>
+                    <td className={tdClass}>{member.duty_on_before || "-"}</td>
+                    <td className={tdClass}>{member.duty_off_before || "-"}</td>
+                    <td className={tdClass}>{member.duration_before ?? "-"}</td>
+                    {/* SPL After */}
+                    <td className={tdClass}>{member.break_after ?? "-"}</td>
+                    <td className={tdClass}>{member.ot_after ?? "-"}</td>
+                    <td className={tdClass}>{member.duration_after ?? "-"}</td>
+                    {/* SPL Total */}
+                    <td className={tdClass}>{member.spl_total_break ?? "-"}</td>
+                    <td className={tdClass}>{member.spl_total_ot ?? "-"}</td>
+                    {/* Actual Attendance */}
+                    <td className={tdClass}>{member.actual_duty_on || "-"}</td>
+                    <td className={tdClass}>{member.actual_duty_off || "-"}</td>
+                    <td className={tdClass}>{member.attendance_code || "-"}</td>
+                    {/* SPL Payment Total */}
+                    <td className={tdClass + " font-medium"}>{member.overtime_hours}</td>
+                    {/* OT Calculate */}
+                    <td className={tdClass}>{member.ot_calc_1_5 ?? "-"}</td>
+                    <td className={tdClass}>{member.ot_calc_2 ?? "-"}</td>
+                    <td className={tdClass}>{member.ot_calc_3 ?? "-"}</td>
+                    <td className={tdClass}>{member.ot_calc_4 ?? "-"}</td>
+                    {/* SPL Indeks */}
+                    <td className={tdClass}>{member.spl_indeks_total ?? "-"}</td>
+                    <td className={tdClass}>{member.note || "-"}</td>
+                    {/* Input kolom validasi */}
+                    <td className={tdClass}>
+                      <Input
+                        type="number" min="0"
+                        value={member.billable_hours}
+                        onChange={(e) => updateHours(member.id, "billable_hours", e.target.value)}
+                        className="w-20"
+                        disabled={validationMethod === "TOTAL"}
+                      />
+                    </td>
+                    <td className={tdClass}>
+                      <Input
+                        type="number" min="0"
+                        value={member.non_billable_hours}
+                        onChange={(e) => updateHours(member.id, "non_billable_hours", e.target.value)}
+                        className="w-20"
+                        disabled={validationMethod === "TOTAL"}
+                      />
+                    </td>
+                    <td className={tdClass}>
+                      <Textarea
+                        rows={1}
+                        placeholder="Penjelasan (opsional)"
+                        value={member.remark}
+                        onChange={(e) => updateRemark(member.id, e.target.value)}
+                        className="min-w-[160px] font-sans"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button onClick={submitApproval} disabled={submitting}>

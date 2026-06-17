@@ -30,24 +30,18 @@ export default function HistoryPage() {
     if (history.length === 0) return;
 
     const headers = [
-      "id",
-      "nip",
-      "employee_name",
-      "employee_email",
-      "project_name",
-      "overtime_period",
-      "overtime_hours",
-      "billable_hours",
-      "non_billable_hours",
-      "status",
-      "validation_type",
-      "validation_method",
-      "session_total_billable_hours",
-      "session_total_non_billable_hours",
-      "validation_remark",
-      "validated_by",
-      "validated_device",
-      "validated_at",
+      "id", "nip", "employee_name", "employee_email", "project_name",
+      "overtime_period", "overtime_hours", "billable_hours", "non_billable_hours",
+      "status", "validation_type", "validation_method",
+      "session_total_billable_hours", "session_total_non_billable_hours",
+      "validation_remark", "validated_by", "validated_device", "validated_at",
+      "job_position", "schedule", "shift",
+      "duty_on_before", "duty_off_before", "duration_before",
+      "break_after", "ot_after", "duration_after",
+      "spl_total_break", "spl_total_ot",
+      "actual_duty_on", "actual_duty_off", "attendance_code",
+      "ot_calc_1_5", "ot_calc_2", "ot_calc_3", "ot_calc_4",
+      "spl_indeks_total", "overtime_paid", "note",
     ];
 
     const rows = history.map((row) =>

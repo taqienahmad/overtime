@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ClipboardList,
@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   Percent,
   BarChart3,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import {
   PieChart,
@@ -114,6 +116,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [expanded, setExpanded] = useState({});
 
   // Reports state
   const [summary, setSummary] = useState(null);
@@ -166,6 +169,10 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function toggleExpand(key) {
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
   async function handleCreateAndSend(group) {
@@ -344,6 +351,7 @@ export default function DashboardPage() {
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-slate-50">
+                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500"></th>
                   <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Project</th>
                   <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Approver Email</th>
                   <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Total Members</th>
@@ -355,30 +363,123 @@ export default function DashboardPage() {
               </thead>
 
               <tbody>
-                {groups.map((group) => (
-                  <tr
-                    key={`${group.employee_email}-${group.project_name}`}
-                    className="border-t border-slate-100 transition-colors hover:bg-slate-50"
-                  >
-                    <td className="px-5 py-4 font-medium text-[#0F172A]">{group.project_name}</td>
-                    <td className="px-5 py-4 text-slate-600">{group.employee_email}</td>
-                    <td className="px-5 py-4 text-slate-600">{group.total_members}</td>
-                    <td className="px-5 py-4 text-slate-600">{group.total_hours}</td>
-                    <td className="px-5 py-4">
-                      <EmailStatusBadge group={group} />
-                    </td>
-                    <td className="px-5 py-4 text-slate-500">{formatDateTime(group.last_email_sent_at)}</td>
-                    <td className="px-5 py-4">
-                      <button
-                        onClick={() => handleCreateAndSend(group)}
-                        className="inline-flex items-center gap-2 rounded-full bg-[#D71920] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-red-200"
-                      >
-                        <Send size={14} />
-                        {group.last_email_sent_at ? "Kirim Ulang Email" : "Create Session & Send Email"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {groups.map((group) => {
+                  const rowKey = `${group.employee_email}-${group.project_name}`;
+                  const isExpanded = !!expanded[rowKey];
+                  const members = group.members || [];
+                  return (
+                    <Fragment key={rowKey}>
+                      <tr className="border-t border-slate-100 transition-colors hover:bg-slate-50">
+                        <td className="px-3 py-4">
+                          <button
+                            onClick={() => toggleExpand(rowKey)}
+                            className="flex items-center justify-center text-slate-400 hover:text-slate-600"
+                          >
+                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </td>
+                        <td className="px-5 py-4 font-medium text-[#0F172A]">{group.project_name}</td>
+                        <td className="px-5 py-4 text-slate-600">{group.employee_email}</td>
+                        <td className="px-5 py-4 text-slate-600">{group.total_members}</td>
+                        <td className="px-5 py-4 text-slate-600">{group.total_hours}</td>
+                        <td className="px-5 py-4">
+                          <EmailStatusBadge group={group} />
+                        </td>
+                        <td className="px-5 py-4 text-slate-500">{formatDateTime(group.last_email_sent_at)}</td>
+                        <td className="px-5 py-4">
+                          <button
+                            onClick={() => handleCreateAndSend(group)}
+                            className="inline-flex items-center gap-2 rounded-full bg-[#D71920] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-red-200"
+                          >
+                            <Send size={14} />
+                            {group.last_email_sent_at ? "Kirim Ulang Email" : "Create Session & Send Email"}
+                          </button>
+                        </td>
+                      </tr>
+
+                      {isExpanded && (
+                        <tr className="bg-slate-50/70">
+                          <td></td>
+                          <td colSpan={7} className="px-4 pb-4 pt-1">
+                            <div className="overflow-x-auto rounded-lg border border-slate-200">
+                              <table className="w-full text-left text-xs">
+                                <thead>
+                                  <tr className="bg-white">
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">NIP</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">Nama</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">Jabatan</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">Schedule</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">Periode</th>
+                                    <th colSpan={4} className="border-b border-r border-slate-200 px-3 py-1 text-center font-semibold text-blue-600 bg-blue-50">SPL Before</th>
+                                    <th colSpan={3} className="border-b border-r border-slate-200 px-3 py-1 text-center font-semibold text-green-600 bg-green-50">SPL After</th>
+                                    <th colSpan={2} className="border-b border-r border-slate-200 px-3 py-1 text-center font-semibold text-yellow-700 bg-yellow-50">SPL Total</th>
+                                    <th colSpan={3} className="border-b border-r border-slate-200 px-3 py-1 text-center font-semibold text-purple-600 bg-purple-50">Actual Attendance</th>
+                                    <th colSpan={4} className="border-b border-r border-slate-200 px-3 py-1 text-center font-semibold text-orange-600 bg-orange-50">OT Calculate</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">SPL Indeks</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-600">SPL Total OT</th>
+                                    <th rowSpan={2} className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-emerald-700 bg-emerald-50">Overtime Paid</th>
+                                    <th rowSpan={2} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-600">Note</th>
+                                  </tr>
+                                  <tr className="bg-white">
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-blue-500 bg-blue-50">Shift</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-blue-500 bg-blue-50">Duty On</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-blue-500 bg-blue-50">Duty Off</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-blue-500 bg-blue-50">Duration</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-green-500 bg-green-50">Break</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-green-500 bg-green-50">OT</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-green-500 bg-green-50">Duration</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-yellow-600 bg-yellow-50">Break</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-yellow-600 bg-yellow-50">OT</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-purple-500 bg-purple-50">Duty On</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-purple-500 bg-purple-50">Duty Off</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-purple-500 bg-purple-50">Code</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-orange-500 bg-orange-50">1.5</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-orange-500 bg-orange-50">2</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-orange-500 bg-orange-50">3</th>
+                                    <th className="border-b border-r border-slate-200 px-3 py-1 font-medium text-orange-500 bg-orange-50">4</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {members.map((m) => (
+                                    <tr key={m.id} className="border-t border-slate-100 hover:bg-white">
+                                      <td className="border-r border-slate-100 px-3 py-2 text-slate-700">{m.nip || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 whitespace-nowrap text-slate-700">{m.employee_name}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 whitespace-nowrap text-slate-600">{m.job_position || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-slate-600">{m.schedule || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 whitespace-nowrap text-slate-600">{m.overtime_period || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-blue-700">{m.shift || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-blue-700">{m.duty_on_before || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-blue-700">{m.duty_off_before || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-blue-700">{m.duration_before ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-green-700">{m.break_after ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-green-700">{m.ot_after ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-green-700">{m.duration_after ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-yellow-700">{m.spl_total_break ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-yellow-700">{m.spl_total_ot ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-purple-700">{m.actual_duty_on || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-purple-700">{m.actual_duty_off || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-purple-700">{m.attendance_code || "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-orange-700">{m.ot_calc_1_5 ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-orange-700">{m.ot_calc_2 ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-orange-700">{m.ot_calc_3 ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-orange-700">{m.ot_calc_4 ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 text-slate-700">{m.spl_indeks_total ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 font-semibold text-slate-800">{m.overtime_hours ?? "-"}</td>
+                                      <td className="border-r border-slate-100 px-3 py-2 font-semibold text-emerald-700">
+                                        {m.overtime_paid != null ? Number(m.overtime_paid).toLocaleString("id-ID") : "-"}
+                                      </td>
+                                      <td className="px-3 py-2 text-slate-600">{m.note || "-"}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
